@@ -13,7 +13,7 @@ module register_port_module (
 	reg [31:0] register_file [0:31]; // 32 registri da 32 bit
 	integer j;
 	
-	always @(negedge clk) begin
+	always @(posedge clk) begin
 			if (!rst) begin
 					for (j = 0; j < 32; j = j + 1) begin
 							register_file[j] <= 32'b0;
