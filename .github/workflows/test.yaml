@@ -13,7 +13,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y verilator make python3 python3-pip
+          sudo apt-get install -y verilator make
 
       - name: Setup python
         uses: actions/setup-python@v5
@@ -25,8 +25,9 @@ jobs:
 
       - name: Run cocotb tests (Verilator)
         env:
-          PYTHON: python3        # forza coerenza con Makefile
-          COCOTB_PYTHON: python3
+          PYTHON: python3.11
+          COCOTB_PYTHON: python3.11
+          PYTHON3: python3.11   # 👈 serve per verilator_includer
         run: |
           cd test
           make clean || true
