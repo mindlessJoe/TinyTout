@@ -1,11 +1,11 @@
-# Makefile per cocotb (supporta Verilator e Icarus)
+# Makefile per cocotb (usa Verilator come default)
 
 # Top-level module (DUT)
 TOPLEVEL_LANG ?= verilog
 TOPLEVEL      = top_module
-MODULE        = test_top  # nome del file Python in test/ senza .py (test_top.py)
+MODULE        = tb  # nome del file Python in test/ senza .py (es: tb.py)
 
-# Aggiungi qui le tue sorgenti RTL
+# Sorgenti RTL
 VERILOG_SOURCES = $(shell pwd)/../src/top_module.v \
                   $(shell pwd)/../src/IO_controller.v \
                   $(shell pwd)/../src/control_unit.v \
@@ -14,18 +14,18 @@ VERILOG_SOURCES = $(shell pwd)/../src/top_module.v \
                   $(shell pwd)/../src/register_port.v \
                   $(shell pwd)/../src/MUX.v \
                   $(shell pwd)/../src/extender.v \
-				  $(shell pwd)/../src/CORE.v
+                  $(shell pwd)/../src/CORE.v
 
 # Forza cocotb ad usare sempre Python corretto
 export PYTHONHOME :=
 export PYTHONPATH :=
 
-# Selezione simulatore (default: icarus, ma supporta verilator)
-SIM ?= icarus
+# Simulatore (forzato a verilator)
+SIM ?= verilator
 
 ifeq ($(SIM),verilator)
   VERILATOR_TRACE = 1
-  EXTRA_ARGS += --sv
+  EXTRA_ARGS += -Wall -Wno-fatal --trace --sv
 endif
 
 # Include cocotb makefiles
