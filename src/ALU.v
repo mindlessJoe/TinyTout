@@ -1,4 +1,3 @@
-`include "ALU_controller.v"
 
 module ALU_module (clk, control_signal, in_world_a, in_world_b, out_world);
 	input clk;
