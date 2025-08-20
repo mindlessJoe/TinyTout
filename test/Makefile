@@ -16,7 +16,8 @@ endif
 
 ifeq ($(SIM),verilator)
   export VERILATOR_TRACE = 1
-  EXTRA_ARGS += --sv
+  EXTRA_ARGS += --sv -Wno-REDEFMACRO -Wno-PINMISSING -Wno-WIDTHTRUNC
+
 endif
 
 # produce i file attesi dalla CI
