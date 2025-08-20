@@ -117,7 +117,63 @@
 #             test/*.vcd
 #             test/results_gl.xml
 
+name: test
+on: [push, workflow_dispatch]
 
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y verilator iverilog make
+
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Force python3.11 as default
+        run: |
+          sudo rm -f /usr/bin/python3
+          sudo ln -s "$(which python3.11)" /usr/bin/python3
+          python3 --version
+
+      - name: Install Python packages
+        run: pip install -r test/requirements.txt
+
+      # ===== RTL TEST (Verilator) =====
+      - name: Run cocotb tests (RTL, Verilator)
+        env:
+          PYTHON: python3.11
+          COCOTB_PYTHON: python3.11
+        run: |
+          cd test
+          make clean || true
+          make SIM=verilator
+          test -f results.xml
+          ! grep failure results.xml
+
+      - name: Test Summary (RTL)
+        uses: test-summary/action@v2.3
+        with:
+          paths: "test/results.xml"
+        if: always()
+
+      - name: Upload simulation results (RTL)
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-rtl
+          path: |
+            test/*.vcd
+            test/results.xml
 
       # ===== PDK per GL =====
       - name: Set up Sky130 PDK
@@ -138,7 +194,6 @@
         env:
           PYTHON: python3.11
           COCOTB_PYTHON: python3.11
-          # volare-action esporta PDK_ROOT e PDK=sky130A nell'ambiente
         run: |
           set -e
           cd test
@@ -152,11 +207,15 @@
           else
             echo "No gate-level netlist found. Marking GL test as skipped."
             cat > results_gl.xml <<'XML'
-            <testsuite name="gl" tests="0" failures="0">
-              <properties>
-                <property name="gl_status" value="skipped_no_netlist"/>
-              </properties>
-            </testsuite>
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="gl" tests="1" failures="0" errors="0" skipped="1" time="0">
+  <properties>
+    <property name="gl_status" value="skipped_no_netlist"/>
+  </properties>
+  <testcase classname="gl" name="netlist_presence" time="0">
+    <skipped message="No gate-level netlist found"/>
+  </testcase>
+</testsuite>
 XML
             exit 0
           fi
@@ -166,17 +225,5 @@ XML
           test -f results_gl.xml
           ! grep failure results_gl.xml
 
-      - name: Test Summary (GL)
-        uses: test-summary/action@v2.3
-        with:
-          paths: "test/results_gl.xml"
-        if: always()
-
-      - name: Upload simulation results (GL)
-        if: success() || failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-gl
-          path: |
-            test/*.vcd
-            test/results_gl.xml
+      - name:
+::contentReference[oaicite:0]{index=0}
