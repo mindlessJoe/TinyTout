@@ -20,4 +20,13 @@ module tt_um_example (
     input  wire       rst_n     // reset_n - low to reset
 );
 
+top_module(
+    
+    .clk(clk),
+    .rst(rst_n),
+    .data_in(ui_in),
+    .data_out(ui_out),
+    .address_out(uio_out)
+);
+
 endmodule
