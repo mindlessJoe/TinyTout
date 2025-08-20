@@ -16,7 +16,11 @@ module ALU_controller_module (
 );
 
 always @(*) begin
-		$display("--ALU_OP_CALLED:	%d", ALU_OP); 
+
+    `ifdef SYNTHESIS
+		$display("--ALU_OP_CALLED:	%d", ALU_OP);
+        `endif 
+         
         case (ALU_OP)
             2'b00: ALU_input = `ALU_ADD;  // lw, sw
             2'b01: ALU_input = `ALU_SUB;  // beq, bne 

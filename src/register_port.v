@@ -21,7 +21,10 @@ module register_port_module (
 				end
 			else begin
 					if (write_enable && (write_address != 0))begin
+
+						`ifndef SYNTHESIS
 							$display("A wirting is request: adderss: %d 	word: %h", write_address, data_to_write);
+						`endif 
 							register_file[write_address] <= data_to_write;
 						end
 				end	
