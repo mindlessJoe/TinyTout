@@ -107,7 +107,7 @@ The following table lists all the standard and if it is implemented or not **MIP
 |                       | `bltz`   | I      | if `(rs < 0)` branch to `PC + offset`                  | ❌ |
 |                       | `bgez`   | I      | if `(rs >= 0)` branch to `PC + offset`                 | ❌ |
 | **Jumps (J-type)**    | `j`      | J      | Jump to target address                                  | ✅ |
-|                       | `jal`    | J      | `ra = PC + 4; jump to target`                          | ❌ |
+|                       | `jal`    | J      | `ra = PC + 4; jump to target`                          | ⚠️  as jump |
 | **Jumps (R-type)**    | `jr`     | R      | Jump to address in `rs`                                | ❌ |
 |                       | `jalr`   | R      | `ra = PC + 4; jump to address in rs`                   | ❌ |
 | **Trap/Break**        | `syscall`| R      | Exception for system call                               | ❌ |
