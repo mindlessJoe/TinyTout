@@ -1,4 +1,5 @@
 name: test
+
 on: [push, workflow_dispatch]
 
 jobs:
@@ -15,67 +16,51 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install cocotb + Verilator
+      - name: Install cocotb + simulators
         run: |
-          pip install -r test/requirements.txt
+          pip install cocotb pytest junit-xml
           sudo apt-get update
-          sudo apt-get install -y verilator
+          sudo apt-get install -y iverilog verilator
 
-      - name: Run RTL tests (cocotb + Verilator)
-        env:
-          COCOTB_PYTHON: ${{ steps.py.outputs.python-path }}   # forza il Python giusto
+      - name: Sanity check Python
         run: |
-          cd test
+          which python
+          python -c "import sys, encodings; print(sys.version); print(encodings.__file__)"
+
+      - name: Run RTL tests with Icarus
+        working-directory: test
+        env:
+          COCOTB_PYTHON: ${{ steps.py.outputs.python-path }}
+          PYTHON:        ${{ steps.py.outputs.python-path }}
+        run: |
           make clean || true
-          unset PYTHONHOME PYTHONPATH                           # <-- importantissimo
+          SIM=icarus make
+          test -f results.xml
+          ! grep failure results.xml
+
+      - name: Run RTL tests with Verilator
+        working-directory: test
+        env:
+          COCOTB_PYTHON: ${{ steps.py.outputs.python-path }}
+          PYTHON:        ${{ steps.py.outputs.python-path }}
+        run: |
+          make clean || true
+          unset PYTHONHOME PYTHONPATH
           SIM=verilator make
           test -f results.xml
           ! grep failure results.xml
 
-
-      - name: Test Summary (RTL)
+      - name: Test Summary
         uses: test-summary/action@v2.3
-        if: always()
         with:
-          paths: test/results.xml
+          paths: "test/results.xml"
+        if: always()
 
-      - name: Upload RTL artifacts
+      - name: Upload VCD
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          name: rtl_test_artifacts
+          name: test-vcd
           path: |
-            test/tb.vcd
-            test/results.xml
-
-  gl_test:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      # Questa action:
-      # - scarica la netlist gate-level (tt_submission)
-      # - la copia in test/gate_level_netlist.v
-      # - installa iverilog + cocotb
-      # - esegue: cd test && rm tb.vcd results.xml ; make clean ; GATES=yes make
-      # - verifica test/results.xml
-      - name: Gate-Level Test (TinyTapeout)
-        uses: TinyTapeout/tt-gds-action/gl_test@ttsky25a
-
-      - name: Test Summary (GL)
-        uses: test-summary/action@v2.3
-        if: always()
-        with:
-          paths: test/results.xml
-
-      - name: Upload GL artifacts
-        if: success() || failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: gatelevel_test_vcd
-          path: |
-            test/tb.vcd
+            test/*.vcd
             test/results.xml

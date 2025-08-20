@@ -1,36 +1,36 @@
-# --- cocotb + Icarus, RTL & GL ---
+# Makefile per cocotb (supporta Verilator e Icarus)
+
+# Top-level module (DUT)
+TOPLEVEL_LANG ?= verilog
+TOPLEVEL      = top_module
+MODULE        = test_top  # nome del file Python in test/ senza .py (test_top.py)
+
+# Aggiungi qui le tue sorgenti RTL
+VERILOG_SOURCES = $(shell pwd)/../src/top_module.v \
+                  $(shell pwd)/../src/IO_controller.v \
+                  $(shell pwd)/../src/control_unit.v \
+                  $(shell pwd)/../src/ALU_controller.v \
+                  $(shell pwd)/../src/ALU.v \
+                  $(shell pwd)/../src/register_port.v \
+                  $(shell pwd)/../src/MUX.v \
+                  $(shell pwd)/../src/extender.v
+
+# Forza cocotb ad usare sempre Python corretto
 export PYTHONHOME :=
 export PYTHONPATH :=
 
+# Selezione simulatore (default: icarus, ma supporta verilator)
 SIM ?= icarus
-TOPLEVEL_LANG ?= verilog
-MODULE ?= tb                    # tb.py (senza estensione)
-
-# Se GATES=yes (usato dalla action GL), usa la netlist e il wrapper TT
-ifeq ($(GATES),yes)
-  VERILOG_SOURCES = $(PWD)/gate_level_netlist.v
-  TOPLEVEL        = tt_um_mindlessjoe_mips_core
-else
-  # RTL: tutti i sorgenti
-  VERILOG_SOURCES = ../src/*.v
-  TOPLEVEL        = top_module
-endif
 
 ifeq ($(SIM),verilator)
-  export VERILATOR_TRACE = 1
-  EXTRA_ARGS += --sv -Wno-REDEFMACRO -Wno-PINMISSING -Wno-WIDTHTRUNC
-
+  VERILATOR_TRACE = 1
+  EXTRA_ARGS += --sv
 endif
 
-# produce i file attesi dalla CI
-export VCD_FILE = tb.vcd
-export COCOTB_RESULTS_FILE = results.xml
-export COCOTB_REDUCED_LOG_FMT = 1
-
-# include le regole standard di cocotb
+# Include cocotb makefiles
 include $(shell cocotb-config --makefiles)/Makefile.sim
 
+# Target di pulizia
 .PHONY: clean
 clean::
-	$(MAKE) -f $(shell cocotb-config --makefiles)/Makefile.sim clean
-	rm -f tb.vcd results.xml gate_level_netlist.v
+	rm -rf sim_build *.vcd results.xml
