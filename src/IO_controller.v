@@ -108,7 +108,7 @@ module IO_controller_module(
 	always @(*) begin
 			// Default
 			cpu_clk = 1'b0;
-			next_istruction_reg  = instruction_reg;
+			next_instruction_reg  = instruction_reg;
     		next_memory_out_reg  = memory_out_reg;
 
 			instruction_counter_en = 1'b0;
