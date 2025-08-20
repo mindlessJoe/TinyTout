@@ -16,6 +16,7 @@ module tt_um_mindlessjoe_mips_core (
     input  wire       rst_n     // reset_n - low to reset
 );
 
+assign uio_oe = 8'hFF;
 top_module SoC(
     
     .clk(clk),
