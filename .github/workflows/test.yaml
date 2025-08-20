@@ -24,6 +24,9 @@ jobs:
         run: pip install -r test/requirements.txt
 
       - name: Run cocotb tests (Verilator)
+        env:
+          PYTHON: python3        # forza coerenza con Makefile
+          COCOTB_PYTHON: python3
         run: |
           cd test
           make clean || true

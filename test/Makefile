@@ -16,23 +16,24 @@ VERILOG_SOURCES = $(shell pwd)/../src/top_module.v \
                   $(shell pwd)/../src/extender.v \
                   $(shell pwd)/../src/CORE.v
 
-# Forza cocotb ad usare sempre Python corretto
+# Pulizia variabili Python per evitare conflitti
 export PYTHONHOME :=
 export PYTHONPATH :=
+
+# Forza cocotb a usare il Python giusto (iniettato da GitHub Actions)
+PYTHON ?= $(shell which python3)
+export COCOTB_PYTHON = $(PYTHON)
 
 # Simulatore (forzato a verilator)
 SIM ?= verilator
 
 ifeq ($(SIM),verilator)
-  VERILATOR_TRACE = 1
   EXTRA_ARGS += -Wall -Wno-fatal -Wno-PINMISSING -Wno-REDEFMACRO -Wno-WIDTHTRUNC --trace --sv
-
 endif
 
 # Usa nuovo sistema di trace (VERILATOR_TRACE è deprecato)
 COCOTB_RESOLVE_X = ZEROS
 COCOTB_REDUCED_LOG_FMT = 1
-
 
 # Include cocotb makefiles
 include $(shell cocotb-config --makefiles)/Makefile.sim
