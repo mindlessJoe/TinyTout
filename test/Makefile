@@ -25,8 +25,14 @@ SIM ?= verilator
 
 ifeq ($(SIM),verilator)
   VERILATOR_TRACE = 1
-  EXTRA_ARGS += -Wall -Wno-fatal --trace --sv
+  EXTRA_ARGS += -Wall -Wno-fatal -Wno-PINMISSING -Wno-REDEFMACRO -Wno-WIDTHTRUNC --trace --sv
+
 endif
+
+# Usa nuovo sistema di trace (VERILATOR_TRACE è deprecato)
+COCOTB_RESOLVE_X = ZEROS
+COCOTB_REDUCED_LOG_FMT = 1
+
 
 # Include cocotb makefiles
 include $(shell cocotb-config --makefiles)/Makefile.sim
