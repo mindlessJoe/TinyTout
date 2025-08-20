@@ -26,7 +26,7 @@ project:
     - "control_unit.v"
     - "extender.v"
     - "IO_controller.v"
-    - "MIPS_processor.v"
+    - "CORE.v"
     - "MUX.v"
     - "register_port.v"
 
