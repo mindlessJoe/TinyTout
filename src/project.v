@@ -25,7 +25,7 @@ top_module SoC(
     .clk(clk),
     .rst(rst_n),
     .data_in(ui_in),
-    .data_out(ui_out),
+    .data_out(uo_out),
     .address_out(uio_out)
 );
 
