@@ -133,9 +133,8 @@ module IO_controller_module(
 						instruction_reg[8*instruction_counter_output +: 8] = data_input;
 						
 						// Debug display
-						$display("|clk = %0b| T=%0t | FETCH_INST | count=%0d | byte_in=%b | instruction=%b",
+						$display("|clk = %0b| FETCH_INST | count=%0d | byte_in=%b | instruction=%b",
 							clk,
-							$time,
 							instruction_counter_output,
 							data_input,
 							instruction_reg);
@@ -150,9 +149,8 @@ module IO_controller_module(
 				
 				GET_WORD: begin
 						cpu_clk = 1'b1;
-						$display("|clk = %0b| T=%0t | GET_WORD | count= %0d | word = %h | in_address = %h | data_out =%h| address_out=%h",
+						$display("|clk = %0b | GET_WORD | count= %0d | word = %h | in_address = %h | data_out =%h| address_out=%h",
 							clk,
-							$time,
 							register_data_output,
 							data_from_register,
 							memory_address,
@@ -172,9 +170,9 @@ module IO_controller_module(
 					end
 				
 				WRITE_WORD: begin
-						$display("|clk = %0b| T=%0t | WRITE_WORD | count=%0d | byte_in=%h | memory_out=%h",
+						$display("|clk = %0b | WRITE_WORD | count=%0d | byte_in=%h | memory_out=%h",
 							clk,
-							$time,
+
 							memory_data_output,
 							data_input,
 							memory_out_reg);
