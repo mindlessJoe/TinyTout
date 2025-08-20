@@ -14,6 +14,11 @@ else
   TOPLEVEL        = top_module
 endif
 
+ifeq ($(SIM),verilator)
+  export VERILATOR_TRACE = 1
+  EXTRA_ARGS += --sv
+endif
+
 # produce i file attesi dalla CI
 export VCD_FILE = tb.vcd
 export COCOTB_RESULTS_FILE = results.xml

@@ -5,25 +5,27 @@ jobs:
   rtl_test:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install cocotb + iverilog
+      - name: Install cocotb + Verilator
         run: |
           pip install -r test/requirements.txt
           sudo apt-get update
-          sudo apt-get install -y iverilog
+          sudo apt-get install -y verilator
 
-      - name: Run RTL tests (cocotb)
+      - name: Run RTL tests (cocotb + Verilator)
         run: |
           cd test
           make clean || true
-          make
+          SIM=verilator make
           # cocotb produce results.xml: fallisci se ci sono failure
           test -f results.xml
           ! grep failure results.xml
@@ -46,16 +48,17 @@ jobs:
   gl_test:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      # Questa action fa:
-      # - download artifact tt_submission (netlist GL)
-      # - copia su test/gate_level_netlist.v
+      # Questa action:
+      # - scarica la netlist gate-level (tt_submission)
+      # - la copia in test/gate_level_netlist.v
       # - installa iverilog + cocotb
-      # - cd test && rm tb.vcd results.xml ; make clean ; GATES=yes make
-      # - verifica results.xml
+      # - esegue: cd test && rm tb.vcd results.xml ; make clean ; GATES=yes make
+      # - verifica test/results.xml
       - name: Gate-Level Test (TinyTapeout)
         uses: TinyTapeout/tt-gds-action/gl_test@ttsky25a
 
