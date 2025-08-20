@@ -1,4 +1,6 @@
 # --- cocotb + Icarus, RTL & GL ---
+export PYTHONHOME :=
+export PYTHONPATH :=
 
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog

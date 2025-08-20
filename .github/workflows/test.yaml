@@ -5,12 +5,12 @@ jobs:
   rtl_test:
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Setup Python
+        id: py
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -22,13 +22,16 @@ jobs:
           sudo apt-get install -y verilator
 
       - name: Run RTL tests (cocotb + Verilator)
+        env:
+          COCOTB_PYTHON: ${{ steps.py.outputs.python-path }}   # forza il Python giusto
         run: |
           cd test
           make clean || true
+          unset PYTHONHOME PYTHONPATH                           # <-- importantissimo
           SIM=verilator make
-          # cocotb produce results.xml: fallisci se ci sono failure
           test -f results.xml
           ! grep failure results.xml
+
 
       - name: Test Summary (RTL)
         uses: test-summary/action@v2.3
