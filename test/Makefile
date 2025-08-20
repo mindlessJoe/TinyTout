@@ -20,8 +20,8 @@ VERILOG_SOURCES = $(shell pwd)/../src/top_module.v \
 export PYTHONHOME :=
 export PYTHONPATH :=
 
-# Forza cocotb a usare il Python giusto (iniettato da GitHub Actions)
-PYTHON ?= $(shell which python3)
+# Forza cocotb a usare Python 3.11 (coerente con test.yaml)
+PYTHON ?= python3.11
 export COCOTB_PYTHON = $(PYTHON)
 
 # Simulatore (forzato a verilator)
