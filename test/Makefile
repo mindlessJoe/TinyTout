@@ -2,11 +2,12 @@
 
 # Top-level module (DUT)
 TOPLEVEL_LANG ?= verilog
-TOPLEVEL      = top_module
+TOPLEVEL      = tt_um_mindlessjoe_mips_core
 MODULE        = tb  # nome del file Python in test/ senza .py (es: tb.py)
 
 # Sorgenti RTL
-VERILOG_SOURCES = $(shell pwd)/../src/top_module.v \
+VERILOG_SOURCES = $(shell pwd)/../src/project.v \
+				  $(shell pwd)/../src/top_module.v \
                   $(shell pwd)/../src/IO_controller.v \
                   $(shell pwd)/../src/control_unit.v \
                   $(shell pwd)/../src/ALU_controller.v \
@@ -20,9 +21,10 @@ VERILOG_SOURCES = $(shell pwd)/../src/top_module.v \
 export PYTHONHOME :=
 export PYTHONPATH :=
 
-# Forza cocotb a usare Python 3.11 (coerente con test.yaml)
+# Forza cocotb e Verilator a usare Python 3.11 (coerente con test.yaml)
 PYTHON ?= python3.11
 export COCOTB_PYTHON = $(PYTHON)
+export PYTHON3 = $(PYTHON)   # 👈 serve per verilator_includer
 
 # Simulatore (forzato a verilator)
 SIM ?= verilator
