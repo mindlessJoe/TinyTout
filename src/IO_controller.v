@@ -85,7 +85,9 @@ module IO_controller_module(
 		.counter(memory_data_output)
 		);
 	reg [31:0] memory_out_reg = 32'b0;
+	reg [31:0] next_memory_out_reg = 32'b0;
 	reg [31:0] instruction_reg = 32'b0;
+	reg[31:0] next_istruction_reg = 32'b0;
 	reg[7:0] address_out_reg =8'b0;
 	reg[7:0] data_output_reg = 8'b0;
 	
@@ -122,22 +124,22 @@ module IO_controller_module(
 						register_data_reset = 1'b0;
 						memory_data_reset = 1'b0;
 						
-						instruction_reg = 32'b0;
-						memory_out_reg = 32'b0;
+						next_istruction_reg = 32'b0;
+						next_memory_out_reg = 32'b0;
 						address_out_reg = 8'h0;
 						data_output_reg = 8'b0;
 					end	
 				
 				FETCH_INST: begin
 						instruction_counter_en = 1'b1;
-						instruction_reg[8*instruction_counter_output +: 8] = data_input;
+						next_istruction_reg[8*instruction_counter_output +: 8] = data_input;
 						
 						// Debug display
 						$display("|clk = %0b| FETCH_INST | count=%0d | byte_in=%b | instruction=%b",
 							clk,
 							instruction_counter_output,
 							data_input,
-							instruction_reg);
+							next_istruction_reg);
 						
 					end
 				
@@ -175,11 +177,11 @@ module IO_controller_module(
 
 							memory_data_output,
 							data_input,
-							memory_out_reg);
+							next_memory_out_reg);
 						
 							cpu_clk = 1'b1;
 						memory_data_counter_en = 1'b1;
-						memory_out_reg[8*memory_data_output +: 8] = data_input;
+						next_memory_out_reg[8*memory_data_output +: 8] = data_input;
 					end
 			endcase
 		end
@@ -225,11 +227,23 @@ module IO_controller_module(
 			memory_data_output);
 		end
 	
+	always @(negedge clk)
+	
+		begin
+
+		instruction_reg <= next_istruction_reg;
+		memory_out_reg <= next_memory_out_reg;
+		
+		end
+	
+	
 	always @(*)	 begin
 			instruction = instruction_reg;
 			address_out = address_out_reg;
 			data_output = data_output_reg;
 			memory_out = memory_out_reg;
 		end
+
+
 	
 endmodule

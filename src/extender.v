@@ -35,6 +35,6 @@ wire [31:0] world;
 
 // Enter your statements here //
 
-assign world = {{16{world[15]}}, immediate};
+assign world = {{16{immediate[15]}}, immediate};
 
 endmodule
