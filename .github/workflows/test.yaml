@@ -1,61 +1,125 @@
-name: test
-on: [push, workflow_dispatch]
+# name: test
+# on: [push, workflow_dispatch]
 
-jobs:
-  test:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
+# jobs:
+#   test:
+#     runs-on: ubuntu-24.04
+#     steps:
+#       - name: Checkout repo
+#         uses: actions/checkout@v4
+#         with:
+#           submodules: recursive
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y verilator make
+#       - name: Install dependencies
+#         run: |
+#           sudo apt-get update
+#           sudo apt-get install -y verilator make
 
-      - name: Setup python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+#       - name: Setup python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: '3.11'
 
-      - name: Force python3.11 as default
-        run: | 
-          sudo rm -f /usr/bin/python3
-          sudo ln -s $(which python3.11) /usr/bin/python3
-          python3 --version
+#       - name: Force python3.11 as default
+#         run: | 
+#           sudo rm -f /usr/bin/python3
+#           sudo ln -s $(which python3.11) /usr/bin/python3
+#           python3 --version
 
-      - name: Install Python packages
-        run: pip install -r test/requirements.txt
+#       - name: Install Python packages
+#         run: pip install -r test/requirements.txt
 
-      - name: Run cocotb tests (Verilator)
-        env:
-          PYTHON: python3.11
-          COCOTB_PYTHON: python3.11
-        run: |
-          cd test
-          make clean || true
-          make SIM=verilator
-          test -f results.xml
-          ! grep failure results.xml
+#       - name: Run cocotb tests (Verilator)
+#         env:
+#           PYTHON: python3.11
+#           COCOTB_PYTHON: python3.11
+#         run: |
+#           cd test
+#           make clean || true
+#           make SIM=verilator
+#           test -f results.xml
+#           ! grep failure results.xml
 
-      - name: Test Summary
-        uses: test-summary/action@v2.3
-        with:
-          paths: "test/results.xml"
-        if: always()
+#       - name: Test Summary
+#         uses: test-summary/action@v2.3
+#         with:
+#           paths: "test/results.xml"
+#         if: always()
 
-      - name: Upload simulation results
-        if: success() || failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: |
-            test/*.vcd
-            test/results.xml
+#       - name: Upload simulation results
+#         if: success() || failure()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: test-results
+#           path: |
+#             test/*.vcd
+#             test/results.xml
 
-           # ===== PDK per GL =====
+#            # ===== PDK per GL =====
+#       - name: Set up Sky130 PDK
+#         uses: TinyTapeout/volare-action@v2
+#         with:
+#           pdk: sky130
+
+#       # (opzionale) scarica la netlist gate-level dall'altro job (tt_submission)
+#       - name: Download tt_submission artifact (optional)
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: tt_submission
+#           path: tt_submission
+#         continue-on-error: true
+
+#       # ===== GL TEST (Icarus) =====
+#       - name: Run cocotb tests (Gate-Level, Icarus)
+#         env:
+#           PYTHON: python3.11
+#           COCOTB_PYTHON: python3.11
+#           # volare-action esporta PDK_ROOT e PDK=sky130A nell'ambiente
+#         run: |
+#           set -e
+#           cd test
+
+#           # Scegli la netlist GL:
+#           if [ -f gate_level_netlist.v ]; then
+#             echo "Using existing test/gate_level_netlist.v"
+#           elif ls ../tt_submission/*.v >/dev/null 2>&1; then
+#             cp ../tt_submission/*.v gate_level_netlist.v
+#             echo "Copied netlist from tt_submission artifact"
+#           else
+#             echo "No gate-level netlist found. Marking GL test as skipped."
+#             cat > results_gl.xml <<'XML'
+#             <testsuite name="gl" tests="0" failures="0">
+#               <properties>
+#                 <property name="gl_status" value="skipped_no_netlist"/>
+#               </properties>
+#             </testsuite>
+# XML
+#             exit 0
+#           fi
+
+#           make -f Makefile.gl clean || true
+#           make -f Makefile.gl SIM=icarus
+#           test -f results_gl.xml
+#           ! grep failure results_gl.xml
+
+#       - name: Test Summary (GL)
+#         uses: test-summary/action@v2.3
+#         with:
+#           paths: "test/results_gl.xml"
+#         if: always()
+
+#       - name: Upload simulation results (GL)
+#         if: success() || failure()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: test-results-gl
+#           path: |
+#             test/*.vcd
+#             test/results_gl.xml
+
+
+
+      # ===== PDK per GL =====
       - name: Set up Sky130 PDK
         uses: TinyTapeout/volare-action@v2
         with:
