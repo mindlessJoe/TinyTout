@@ -45,11 +45,11 @@ module control_unit_module (
 	output reg [3:0] output_i_op
 	);
 	
-	always @(posedge clk, rst) begin
+	always @(posedge clk) begin
 		
 		if(!rst) begin
-			output_signal = 12'd0;
-			output_i_op = 4'd0;
+			output_signal <= 12'd0;
+			output_i_op <= 4'd0;
 		end
 			
 		

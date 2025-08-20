@@ -7,8 +7,7 @@
 `define ALU_SLL               4'b1000 //ALU_INPUT[0] identifies the shift opration 
 `define ALU_SRL               4'b1001
 
-module ALU_module (clk, control_signal, in_world_a, in_world_b, out_world);
-	input clk;
+module ALU_module (control_signal, in_world_a, in_world_b, out_world);
 	input [3:0] control_signal;
 	input [31:0] in_world_a;
 	input [31:0] in_world_b;
