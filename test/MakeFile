@@ -1,29 +1,28 @@
-# --- RTL simulation with Icarus Verilog ---
-TOP        := tb_top_module
-RTL_DIR    := ../src
-TB         := tb_top_module.v
-SRCS       := $(RTL_DIR)/top_module.v \
-              $(RTL_DIR)/IO_controller.v \
-              $(RTL_DIR)/control_unit.v \
-              $(RTL_DIR)/ALU_controller.v \
-              $(RTL_DIR)/ALU.v \
-              $(RTL_DIR)/register_port.v \
-              $(RTL_DIR)/extender.v \
-              $(RTL_DIR)/MUX.v
-BUILD_DIR  := build
-VVP        := $(BUILD_DIR)/sim.vvp
+# --- cocotb + Icarus, RTL & GL ---
 
-all: sim
+SIM ?= icarus
+TOPLEVEL_LANG ?= verilog
+MODULE ?= tb                    # tb.py (senza estensione)
 
-$(VVP): $(TB) $(SRCS)
-	@mkdir -p $(BUILD_DIR)
-	iverilog -g2012 -Wall -s $(TOP) -o $(VVP) $(TB) $(SRCS)
+# Se GATES=yes (usato dalla action GL), usa la netlist e il wrapper TT
+ifeq ($(GATES),yes)
+  VERILOG_SOURCES = $(PWD)/gate_level_netlist.v
+  TOPLEVEL        = tt_um_mindlessjoe_mips_core
+else
+  # RTL: tutti i sorgenti
+  VERILOG_SOURCES = ../src/*.v
+  TOPLEVEL        = top_module
+endif
 
-sim: $(VVP)
-	vvp $(VVP)
+# produce i file attesi dalla CI
+export VCD_FILE = tb.vcd
+export COCOTB_RESULTS_FILE = results.xml
+export COCOTB_REDUCED_LOG_FMT = 1
 
-waves: sim
-	gtkwave tb_top_module.vcd &
+# include le regole standard di cocotb
+include $(shell cocotb-config --makefiles)/Makefile.sim
 
+.PHONY: clean
 clean:
-	rm -rf $(BUILD_DIR) tb_top_module.vcd
+	$(MAKE) -f $(shell cocotb-config --makefiles)/Makefile.sim clean
+	rm -f tb.vcd results.xml gate_level_netlist.v

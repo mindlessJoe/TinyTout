@@ -1,47 +1,75 @@
 name: test
 on: [push, workflow_dispatch]
+
 jobs:
-  test:
+  rtl_test:
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Install iverilog
-        shell: bash
-        run: sudo apt-get update && sudo apt-get install -y iverilog
-
-      # Set Python up and install cocotb
-      - name: Setup python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install Python packages
-        shell: bash
-        run: pip install -r test/requirements.txt
+      - name: Install cocotb + iverilog
+        run: |
+          pip install -r test/requirements.txt
+          sudo apt-get update
+          sudo apt-get install -y iverilog
 
-      - name: Run tests
+      - name: Run RTL tests (cocotb)
         run: |
           cd test
-          make clean
+          make clean || true
           make
-          # make will return success even if the test fails, so check for failure in the results.xml
+          # cocotb produce results.xml: fallisci se ci sono failure
+          test -f results.xml
           ! grep failure results.xml
 
-      - name: Test Summary
+      - name: Test Summary (RTL)
         uses: test-summary/action@v2.3
-        with:
-          paths: "test/results.xml"
         if: always()
+        with:
+          paths: test/results.xml
 
-      - name: upload vcd
+      - name: Upload RTL artifacts
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-vcd
+          name: rtl_test_artifacts
+          path: |
+            test/tb.vcd
+            test/results.xml
+
+  gl_test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # Questa action fa:
+      # - download artifact tt_submission (netlist GL)
+      # - copia su test/gate_level_netlist.v
+      # - installa iverilog + cocotb
+      # - cd test && rm tb.vcd results.xml ; make clean ; GATES=yes make
+      # - verifica results.xml
+      - name: Gate-Level Test (TinyTapeout)
+        uses: TinyTapeout/tt-gds-action/gl_test@ttsky25a
+
+      - name: Test Summary (GL)
+        uses: test-summary/action@v2.3
+        if: always()
+        with:
+          paths: test/results.xml
+
+      - name: Upload GL artifacts
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gatelevel_test_vcd
           path: |
             test/tb.vcd
             test/results.xml
