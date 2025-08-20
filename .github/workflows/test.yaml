@@ -20,6 +20,12 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Force python3.11 as default
+        run: | 
+          sudo rm -f /usr/bin/python3
+          sudo ln -s $(which python3.11) /usr/bin/python3
+          python3 --version
+
       - name: Install Python packages
         run: pip install -r test/requirements.txt
 
@@ -27,7 +33,6 @@ jobs:
         env:
           PYTHON: python3.11
           COCOTB_PYTHON: python3.11
-          PYTHON3: python3.11   # 👈 serve per verilator_includer
         run: |
           cd test
           make clean || true
