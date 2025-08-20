@@ -57,185 +57,185 @@ module control_unit_module (
 			
 				`GENERIC_R: begin
 					$display("--an R type has been called --");
-						`REG_DEST     = 1'b1;
-						`JUMP_SIGNAL  = 1'b0;
-						`BEQ_SIGNAL   = 1'b0;
-						`BNE_SIGNAL   = 1'b0;
-						`MEM_WRITE    = 1'b0;
-						`MEM_READ     = 1'b0;
-						`ALU_OP_0     = 1'b0;
-						`ALU_OP_1     = 1'b1;
-						`MEM_TO_REG   = 1'b0;
-						`WRITE_REG    = 1'b1;
-						`ALU_SRC	= 1'b0;
-						`LUI_CALLED = 1'b0;
-						output_i_op = 4'd0;
+						`REG_DEST     <= 1'b1;
+						`JUMP_SIGNAL  <= 1'b0;
+						`BEQ_SIGNAL   <= 1'b0;
+						`BNE_SIGNAL   <= 1'b0;
+						`MEM_WRITE    <= 1'b0;
+						`MEM_READ     <= 1'b0;
+						`ALU_OP_0     <= 1'b0;
+						`ALU_OP_1     <= 1'b1;
+						`MEM_TO_REG   <= 1'b0;
+						`WRITE_REG    <= 1'b1;
+						`ALU_SRC	<= 1'b0;
+						`LUI_CALLED <= 1'b0;
+						output_i_op <= 4'd0;
 					end
 				
 				`LW: begin
 					$display("--LW has been called --");
-						`REG_DEST     = 1'b0;
-						`JUMP_SIGNAL  = 1'b0;
-						`BEQ_SIGNAL   = 1'b0;
-						`BNE_SIGNAL   = 1'b0;
-						`MEM_WRITE    = 1'b0;
-						`MEM_READ     = 1'b1;
-						`ALU_OP_0     = 1'b0;
-						`ALU_OP_1     = 1'b0;
-						`MEM_TO_REG   = 1'b1;
-						`WRITE_REG    = 1'b1;
-						`ALU_SRC	= 1'b1;
-						`LUI_CALLED = 1'b0;
-						output_i_op = 4'd0;
+						`REG_DEST     <= 1'b0;
+						`JUMP_SIGNAL  <= 1'b0;
+						`BEQ_SIGNAL   <= 1'b0;
+						`BNE_SIGNAL   <= 1'b0;
+						`MEM_WRITE    <= 1'b0;
+						`MEM_READ     <= 1'b1;
+						`ALU_OP_0     <= 1'b0;
+						`ALU_OP_1     <= 1'b0;
+						`MEM_TO_REG   <= 1'b1;
+						`WRITE_REG    <= 1'b1;
+						`ALU_SRC	<= 1'b1;
+						`LUI_CALLED <= 1'b0;
+						output_i_op <= 4'd0;
 					end
 				
 				`SW: begin
 					$display("--SW has been called --");
-						`REG_DEST     = 1'b0;
-						`JUMP_SIGNAL  = 1'b0;
-						`BEQ_SIGNAL   = 1'b0;
-						`BNE_SIGNAL   = 1'b0;
-						`MEM_WRITE    = 1'b1;
-						`MEM_READ     = 1'b0;
-						`ALU_OP_0     = 1'b0;
-						`ALU_OP_1     = 1'b0;
-						`MEM_TO_REG   = 1'b0;
-						`WRITE_REG    = 1'b0;
-						`ALU_SRC	= 1'b1;
-						`LUI_CALLED = 1'b0;
-						output_i_op = 4'd0;
+						`REG_DEST     <= 1'b0;
+						`JUMP_SIGNAL  <= 1'b0;
+						`BEQ_SIGNAL   <= 1'b0;
+						`BNE_SIGNAL   <= 1'b0;
+						`MEM_WRITE    <= 1'b1;
+						`MEM_READ     <= 1'b0;
+						`ALU_OP_0     <= 1'b0;
+						`ALU_OP_1     <= 1'b0;
+						`MEM_TO_REG   <= 1'b0;
+						`WRITE_REG    <= 1'b0;
+						`ALU_SRC	<= 1'b1;
+						`LUI_CALLED <= 1'b0;
+						output_i_op <= 4'd0;
 					end
 				
 				`BEQ: begin
 					$display("--BEQ has been called --");
-						`REG_DEST     = 1'b0;
-						`JUMP_SIGNAL  = 1'b0;
-						`BEQ_SIGNAL   = 1'b1;
-						`BNE_SIGNAL   = 1'b0;
-						`MEM_WRITE    = 1'b0;
-						`MEM_READ     = 1'b0;
-						`ALU_OP_0     = 1'b0;
-						`ALU_OP_1     = 1'b1;
-						`MEM_TO_REG   = 1'b0;
-						`WRITE_REG    = 1'b0;
-						`LUI_CALLED = 1'b0;
-						output_i_op = 4'd0;
+						`REG_DEST     <= 1'b0;
+						`JUMP_SIGNAL  <= 1'b0;
+						`BEQ_SIGNAL   <= 1'b1;
+						`BNE_SIGNAL   <= 1'b0;
+						`MEM_WRITE    <= 1'b0;
+						`MEM_READ     <= 1'b0;
+						`ALU_OP_0     <= 1'b0;
+						`ALU_OP_1     <= 1'b1;
+						`MEM_TO_REG   <= 1'b0;
+						`WRITE_REG    <= 1'b0;
+						`LUI_CALLED <= 1'b0;
+						output_i_op <= 4'd0;
 					end
 				
 				`BNE: begin
 					$display("--BNE has been called --");
-						`REG_DEST     = 1'b0;
-						`JUMP_SIGNAL  = 1'b0;
-						`BEQ_SIGNAL   = 1'b0;
-						`BNE_SIGNAL   = 1'b1;
-						`MEM_WRITE    = 1'b0;
-						`MEM_READ     = 1'b0;
-						`ALU_OP_0     = 1'b0;
-						`ALU_OP_1     = 1'b1;
-						`MEM_TO_REG   = 1'b0;
-						`WRITE_REG    = 1'b0;
-						output_i_op = 4'd0;
-						`LUI_CALLED = 1'b0;
-						`ALU_SRC	= 1'b1;
+						`REG_DEST     <= 1'b0;
+						`JUMP_SIGNAL  <= 1'b0;
+						`BEQ_SIGNAL   <= 1'b0;
+						`BNE_SIGNAL   <= 1'b1;
+						`MEM_WRITE    <= 1'b0;
+						`MEM_READ     <= 1'b0;
+						`ALU_OP_0     <= 1'b0;
+						`ALU_OP_1     <= 1'b1;
+						`MEM_TO_REG   <= 1'b0;
+						`WRITE_REG    <= 1'b0;
+						output_i_op <= 4'd0;
+						`LUI_CALLED <= 1'b0;
+						`ALU_SRC	<= 1'b1;
 					end
 				
 				`ADDI,`ADDIU: begin
 					$display("--ADDI has been called --");
-						`REG_DEST     = 1'b0;
-						`JUMP_SIGNAL  = 1'b0;
-						`BEQ_SIGNAL   = 1'b0;
-						`BNE_SIGNAL   = 1'b0;
-						`MEM_WRITE    = 1'b0;
-						`MEM_READ     = 1'b0;
-						`ALU_OP_0     = 1'b1;
-						`ALU_OP_1     = 1'b1;
-						`MEM_TO_REG   = 1'b0;
-						`WRITE_REG    = 1'b1;
-						output_i_op = `ALU_ADD;
-						`ALU_SRC	= 1'b1;
+						`REG_DEST     <= 1'b0;
+						`JUMP_SIGNAL  <= 1'b0;
+						`BEQ_SIGNAL   <= 1'b0;
+						`BNE_SIGNAL   <= 1'b0;
+						`MEM_WRITE    <= 1'b0;
+						`MEM_READ     <= 1'b0;
+						`ALU_OP_0     <= 1'b1;
+						`ALU_OP_1     <= 1'b1;
+						`MEM_TO_REG   <= 1'b0;
+						`WRITE_REG    <= 1'b1;
+						output_i_op <= `ALU_ADD;
+						`ALU_SRC	<= 1'b1;
 					end
 				
 				`SLTI, `SLTIU: begin
 					$display("--SLTI has been called --");
-						`REG_DEST     = 1'b0;
-						`JUMP_SIGNAL  = 1'b0;
-						`BEQ_SIGNAL   = 1'b0;
-						`BNE_SIGNAL   = 1'b0;
-						`MEM_WRITE    = 1'b0;
-						`MEM_READ     = 1'b0;
-						`ALU_OP_0     = 1'b1;
-						`ALU_OP_1     = 1'b1;
-						`MEM_TO_REG   = 1'b0;
-						`WRITE_REG    = 1'b1;
-						`LUI_CALLED = 1'b0;
-						output_i_op = `ALU_SET_IF_LESS_THAN;
-						`ALU_SRC	= 1'b1;
+						`REG_DEST     <= 1'b0;
+						`JUMP_SIGNAL  <= 1'b0;
+						`BEQ_SIGNAL   <= 1'b0;
+						`BNE_SIGNAL   <= 1'b0;
+						`MEM_WRITE    <= 1'b0;
+						`MEM_READ     <= 1'b0;
+						`ALU_OP_0     <= 1'b1;
+						`ALU_OP_1     <= 1'b1;
+						`MEM_TO_REG   <= 1'b0;
+						`WRITE_REG    <= 1'b1;
+						`LUI_CALLED <= 1'b0;
+						output_i_op <= `ALU_SET_IF_LESS_THAN;
+						`ALU_SRC	<= 1'b1;
 					end
 				
 				`ANDI: begin
 					$display("--ANDI has been called --");
-						`REG_DEST     = 1'b0;
-						`JUMP_SIGNAL  = 1'b0;
-						`BEQ_SIGNAL   = 1'b0;
-						`BNE_SIGNAL   = 1'b0;
-						`MEM_WRITE    = 1'b0;
-						`MEM_READ     = 1'b0;
-						`ALU_OP_0     = 1'b1;
-						`ALU_OP_1     = 1'b1;
-						`MEM_TO_REG   = 1'b0;
-						`WRITE_REG    = 1'b1;
-						output_i_op = `ALU_AND;
-						`ALU_SRC	= 1'b1;
-						`LUI_CALLED = 1'b0;
+						`REG_DEST     <= 1'b0;
+						`JUMP_SIGNAL  <= 1'b0;
+						`BEQ_SIGNAL   <= 1'b0;
+						`BNE_SIGNAL   <= 1'b0;
+						`MEM_WRITE    <= 1'b0;
+						`MEM_READ     <= 1'b0;
+						`ALU_OP_0     <= 1'b1;
+						`ALU_OP_1     <= 1'b1;
+						`MEM_TO_REG   <= 1'b0;
+						`WRITE_REG    <= 1'b1;
+						output_i_op <= `ALU_AND;
+						`ALU_SRC	<= 1'b1;
+						`LUI_CALLED <= 1'b0;
 					end
 				`ORI: begin
 					$display("--ORI has been called --");
-						`REG_DEST     = 1'b0;
-						`JUMP_SIGNAL  = 1'b0;
-						`BEQ_SIGNAL   = 1'b0;
-						`BNE_SIGNAL   = 1'b0;
-						`MEM_WRITE    = 1'b0;
-						`MEM_READ     = 1'b0;
-						`ALU_OP_0     = 1'b1;
-						`ALU_OP_1     = 1'b1;
-						`MEM_TO_REG   = 1'b0;
-						`WRITE_REG    = 1'b1;
-						output_i_op = `ALU_OR;
-						`LUI_CALLED = 1'b0;
+						`REG_DEST     <= 1'b0;
+						`JUMP_SIGNAL  <= 1'b0;
+						`BEQ_SIGNAL   <= 1'b0;
+						`BNE_SIGNAL   <= 1'b0;
+						`MEM_WRITE    <= 1'b0;
+						`MEM_READ     <= 1'b0;
+						`ALU_OP_0     <= 1'b1;
+						`ALU_OP_1     <= 1'b1;
+						`MEM_TO_REG   <= 1'b0;
+						`WRITE_REG    <= 1'b1;
+						output_i_op <= `ALU_OR;
+						`LUI_CALLED <= 1'b0;
 					end		
 				`LUI: begin
 					$display("--LUI has been called --");
-						`REG_DEST     = 1'b0;
-						`JUMP_SIGNAL  = 1'b0;
-						`BEQ_SIGNAL   = 1'b0;
-						`BNE_SIGNAL   = 1'b0;
-						`MEM_WRITE    = 1'b0;
-						`MEM_READ     = 1'b1;
-						`ALU_OP_0     = 1'b0;
-						`ALU_OP_1     = 1'b0;
-						`MEM_TO_REG   = 1'b1;
-						`WRITE_REG    = 1'b1;
-						`ALU_SRC	= 1'b1;
-						`LUI_CALLED = 1'b1;
-						output_i_op = 4'd0;
+						`REG_DEST     <= 1'b0;
+						`JUMP_SIGNAL  <= 1'b0;
+						`BEQ_SIGNAL   <= 1'b0;
+						`BNE_SIGNAL   <= 1'b0;
+						`MEM_WRITE    <= 1'b0;
+						`MEM_READ     <= 1'b1;
+						`ALU_OP_0     <= 1'b0;
+						`ALU_OP_1     <= 1'b0;
+						`MEM_TO_REG   <= 1'b1;
+						`WRITE_REG    <= 1'b1;
+						`ALU_SRC	<= 1'b1;
+						`LUI_CALLED <= 1'b1;
+						output_i_op <= 4'd0;
 					end	
 					`JUMP, `JAL: begin
-						`REG_DEST     = 1'b0;
-						`JUMP_SIGNAL  = 1'b1;
-						`BEQ_SIGNAL   = 1'b0;
-						`BNE_SIGNAL   = 1'b0;
-						`MEM_WRITE    = 1'b0;
-						`MEM_READ     = 1'b0;
-						`ALU_OP_0     = 1'b0;
-						`ALU_OP_1     = 1'b0;
-						`MEM_TO_REG   = 1'b0;
-						`WRITE_REG    = 1'b0;
-						output_i_op = 4'd0;
-						`ALU_SRC	= 1'b0;
-						`LUI_CALLED = 1'b0;
+						`REG_DEST     <= 1'b0;
+						`JUMP_SIGNAL  <= 1'b1;
+						`BEQ_SIGNAL   <= 1'b0;
+						`BNE_SIGNAL   <= 1'b0;
+						`MEM_WRITE    <= 1'b0;
+						`MEM_READ     <= 1'b0;
+						`ALU_OP_0     <= 1'b0;
+						`ALU_OP_1     <= 1'b0;
+						`MEM_TO_REG   <= 1'b0;
+						`WRITE_REG    <= 1'b0;
+						output_i_op <= 4'd0;
+						`ALU_SRC	<= 1'b0;
+						`LUI_CALLED <= 1'b0;
 					end
 				default: begin
-						output_signal = 11'b0; // disattiva tutto per sicurezza
+						output_signal <= 11'b0; // disattiva tutto per sicurezza
 					end
 			endcase
 		end
