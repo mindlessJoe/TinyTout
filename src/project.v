@@ -6,9 +6,6 @@
 `default_nettype none
 
 module tt_um_mindlessjoe_mips_core (
-    input  wire       VGND,
-    input  wire       VDPWR,    // 1.8v power supply
-//    input  wire       VAPWR,    // 3.3v power supply
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
