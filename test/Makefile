@@ -23,6 +23,6 @@ export COCOTB_REDUCED_LOG_FMT = 1
 include $(shell cocotb-config --makefiles)/Makefile.sim
 
 .PHONY: clean
-clean:
+clean::
 	$(MAKE) -f $(shell cocotb-config --makefiles)/Makefile.sim clean
 	rm -f tb.vcd results.xml gate_level_netlist.v
