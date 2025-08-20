@@ -20,7 +20,7 @@ module tt_um_mindlessjoe_mips_core (
     input  wire       rst_n     // reset_n - low to reset
 );
 
-top_module(
+top_module SoC(
     
     .clk(clk),
     .rst(rst_n),
