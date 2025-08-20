@@ -29,7 +29,7 @@
 #       - name: Install Python packages
 #         run: pip install -r test/requirements.txt
 
-#       - name: Run cocotb tests (Verilator)
+#       - name: Run cocotb tests (RTL, Verilator)
 #         env:
 #           PYTHON: python3.11
 #           COCOTB_PYTHON: python3.11
@@ -37,13 +37,34 @@
 #           cd test
 #           make clean || true
 #           make SIM=verilator
-#           test -f results.xml
-#           ! grep failure results.xml
+#           mv -f results.xml results_rtl.xml
+#           test -f results_rtl.xml
+#           ! grep failure results_rtl.xml
+
+#       # --- GLS funzionale (parte solo se il netlist esiste) ---
+#       - name: Run cocotb tests (GLS, Verilator)
+#         if: success()
+#         env:
+#           PYTHON: python3.11
+#           COCOTB_PYTHON: python3.11
+#         run: |
+#           cd test
+#           if [ -f ../gl/tt_um_mindlessjoe_mips_core.syn.v ]; then
+#             make clean || true
+#             make gl SIM=verilator
+#             mv -f results.xml results_gl.xml
+#             test -f results_gl.xml
+#             ! grep failure results_gl.xml
+#           else
+#             echo "No gate-level netlist in gl/, skipping GLS."
+#           fi
 
 #       - name: Test Summary
 #         uses: test-summary/action@v2.3
 #         with:
-#           paths: "test/results.xml"
+#           paths: |
+#             test/results_rtl.xml
+#             test/results_gl.xml
 #         if: always()
 
 #       - name: Upload simulation results
@@ -53,68 +74,7 @@
 #           name: test-results
 #           path: |
 #             test/*.vcd
-#             test/results.xml
-
-#            # ===== PDK per GL =====
-#       - name: Set up Sky130 PDK
-#         uses: TinyTapeout/volare-action@v2
-#         with:
-#           pdk: sky130
-
-#       # (opzionale) scarica la netlist gate-level dall'altro job (tt_submission)
-#       - name: Download tt_submission artifact (optional)
-#         uses: actions/download-artifact@v4
-#         with:
-#           name: tt_submission
-#           path: tt_submission
-#         continue-on-error: true
-
-#       # ===== GL TEST (Icarus) =====
-#       - name: Run cocotb tests (Gate-Level, Icarus)
-#         env:
-#           PYTHON: python3.11
-#           COCOTB_PYTHON: python3.11
-#           # volare-action esporta PDK_ROOT e PDK=sky130A nell'ambiente
-#         run: |
-#           set -e
-#           cd test
-
-#           # Scegli la netlist GL:
-#           if [ -f gate_level_netlist.v ]; then
-#             echo "Using existing test/gate_level_netlist.v"
-#           elif ls ../tt_submission/*.v >/dev/null 2>&1; then
-#             cp ../tt_submission/*.v gate_level_netlist.v
-#             echo "Copied netlist from tt_submission artifact"
-#           else
-#             echo "No gate-level netlist found. Marking GL test as skipped."
-#             cat > results_gl.xml <<'XML'
-#             <testsuite name="gl" tests="0" failures="0">
-#               <properties>
-#                 <property name="gl_status" value="skipped_no_netlist"/>
-#               </properties>
-#             </testsuite>
-# XML
-#             exit 0
-#           fi
-
-#           make -f Makefile.gl clean || true
-#           make -f Makefile.gl SIM=icarus
-#           test -f results_gl.xml
-#           ! grep failure results_gl.xml
-
-#       - name: Test Summary (GL)
-#         uses: test-summary/action@v2.3
-#         with:
-#           paths: "test/results_gl.xml"
-#         if: always()
-
-#       - name: Upload simulation results (GL)
-#         if: success() || failure()
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: test-results-gl
-#           path: |
-#             test/*.vcd
+#             test/results_rtl.xml
 #             test/results_gl.xml
 
 name: test
@@ -132,7 +92,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y verilator iverilog make
+          sudo apt-get install -y verilator make git
 
       - name: Setup python
         uses: actions/setup-python@v5
@@ -140,15 +100,14 @@ jobs:
           python-version: '3.11'
 
       - name: Force python3.11 as default
-        run: |
+        run: | 
           sudo rm -f /usr/bin/python3
-          sudo ln -s "$(which python3.11)" /usr/bin/python3
+          sudo ln -s $(which python3.11) /usr/bin/python3
           python3 --version
 
       - name: Install Python packages
         run: pip install -r test/requirements.txt
 
-      # ===== RTL TEST (Verilator) =====
       - name: Run cocotb tests (RTL, Verilator)
         env:
           PYTHON: python3.11
@@ -157,73 +116,103 @@ jobs:
           cd test
           make clean || true
           make SIM=verilator
-          test -f results.xml
-          ! grep failure results.xml
+          mv -f results.xml results_rtl.xml
+          test -f results_rtl.xml
+          ! grep failure results_rtl.xml
 
-      - name: Test Summary (RTL)
-        uses: test-summary/action@v2.3
+      # ==== GLS FUNZIONALE, SENZA NULLA IN LOCALE ====
+      # 1) scarica l'ultimo artifact del workflow GDS (stessa branch)
+      - name: Download latest GDS artifact (from gds workflow)
+        uses: dawidd6/action-download-artifact@v6
         with:
-          paths: "test/results.xml"
-        if: always()
+          workflow: gds.yaml          # <-- cambia se il tuo workflow GDS si chiama diversamente
+          workflow_conclusion: success
+          branch: ${{ github.ref_name }}
+          path: gds_artifact
+          if_no_artifact_found: warn
 
-      - name: Upload simulation results (RTL)
-        if: success() || failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-rtl
-          path: |
-            test/*.vcd
-            test/results.xml
+      # 2) trova una netlist gate-level dentro l’artifact (*/verilog/gl/*.v)
+      - name: Locate GL netlist in artifact
+        id: findgl
+        run: |
+          set -e
+          GLV=$(find gds_artifact -type f -path "*/verilog/gl/*.v" | head -n1 || true)
+          if [ -z "$GLV" ]; then
+            echo "found=0" >> $GITHUB_OUTPUT
+            echo "No GL netlist found in artifacts, skipping GLS."
+          else
+            echo "found=1" >> $GITHUB_OUTPUT
+            echo "netlist=$GLV" >> $GITHUB_OUTPUT
+            echo "Found netlist: $GLV"
+          fi
 
-      # ===== PDK per GL =====
-      - name: Set up Sky130 PDK
-        uses: TinyTapeout/volare-action@v2
-        with:
-          pdk: sky130
+      # 3) prepara modelli celle Sky130 (functional) al volo
+      - name: Build Sky130 functional cell models (Verilator-friendly)
+        if: steps.findgl.outputs.found == '1'
+        run: |
+          set -e
+          mkdir -p gl
+          # clona repo delle standard cell (leggero)
+          git clone --depth=1 https://github.com/google/skywater-pdk-libs-sky130_fd_sc_hd sky130_hd
+          # concatena tutti i modelli "functional" in un unico cells_sim.v
+          find sky130_hd/cells -name "*functional*.v" -print0 | xargs -0 cat > gl/cells_sim.v
+          # prova a prendere un primitives.v dal repo; se non c'è, crea un primitives minimale
+          PRIM=$(find sky130_hd -maxdepth 2 -name "primitives.v" -print -quit || true)
+          if [ -n "$PRIM" ]; then
+            cp "$PRIM" gl/primitives.v
+          else
+            cat > gl/primitives.v <<'EOF'
+            // Minimal UDP primitives shim (fallback)
+            // Verilator non usa specify; i modelli functional non dovrebbero richiederli.
+            `ifndef SKY130_MIN_PRIMS
+            `define SKY130_MIN_PRIMS
+            primitive sky130_pr__udp_dff (q, d, clk);
+              output q; reg q; input d, clk;
+              table
+                (01) 1 : ? : 1;
+                (01) 0 : ? : 0;
+                (?0) ? : ? : -;
+                (0?) ? : ? : -;
+                (?1) ? : ? : -;
+              endtable
+            endprimitive
+            `endif
+            EOF
+          fi
+          ls -lh gl/
 
-      # (opzionale) scarica la netlist gate-level dall'altro job (tt_submission)
-      - name: Download tt_submission artifact (optional)
-        uses: actions/download-artifact@v4
-        with:
-          name: tt_submission
-          path: tt_submission
-        continue-on-error: true
-
-      # ===== GL TEST (Icarus) =====
-      - name: Run cocotb tests (Gate-Level, Icarus)
+      # 4) esegui GLS con Verilator usando la netlist + modelli appena creati
+      - name: Run cocotb tests (GLS, Verilator)
+        if: steps.findgl.outputs.found == '1'
         env:
           PYTHON: python3.11
           COCOTB_PYTHON: python3.11
         run: |
-          set -e
           cd test
-
-          # Scegli la netlist GL:
-          if [ -f gate_level_netlist.v ]; then
-            echo "Using existing test/gate_level_netlist.v"
-          elif ls ../tt_submission/*.v >/dev/null 2>&1; then
-            cp ../tt_submission/*.v gate_level_netlist.v
-            echo "Copied netlist from tt_submission artifact"
-          else
-            echo "No gate-level netlist found. Marking GL test as skipped."
-            cat > results_gl.xml <<'XML'
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="gl" tests="1" failures="0" errors="0" skipped="1" time="0">
-  <properties>
-    <property name="gl_status" value="skipped_no_netlist"/>
-  </properties>
-  <testcase classname="gl" name="netlist_presence" time="0">
-    <skipped message="No gate-level netlist found"/>
-  </testcase>
-</testsuite>
-XML
-            exit 0
-          fi
-
-          make -f Makefile.gl clean || true
-          make -f Makefile.gl SIM=icarus
+          make clean || true
+          make gl SIM=verilator \
+            NETLIST="${{ steps.findgl.outputs.netlist }}" \
+            CELLS_SIM="$(pwd)/../gl/cells_sim.v" \
+            PRIMS="$(pwd)/../gl/primitives.v"
+          mv -f results.xml results_gl.xml
           test -f results_gl.xml
           ! grep failure results_gl.xml
 
-      - name:
-::contentReference[oaicite:0]{index=0}
+      - name: Test Summary
+        uses: test-summary/action@v2.3
+        with:
+          paths: |
+            test/results_rtl.xml
+            test/results_gl.xml
+        if: always()
+
+      - name: Upload simulation results
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            test/*.vcd
+            test/results_rtl.xml
+            test/results_gl.xml
+

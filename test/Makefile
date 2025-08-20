@@ -7,7 +7,7 @@ MODULE        = tb  # nome del file Python in test/ senza .py (es: tb.py)
 
 # Sorgenti RTL
 VERILOG_SOURCES = $(shell pwd)/../src/project.v \
-                  $(shell pwd)/../src/top_module.v \
+				  $(shell pwd)/../src/top_module.v \
                   $(shell pwd)/../src/IO_controller.v \
                   $(shell pwd)/../src/control_unit.v \
                   $(shell pwd)/../src/ALU_controller.v \
@@ -24,22 +24,17 @@ export PYTHONPATH :=
 # Forza cocotb e Verilator a usare Python 3.11 (coerente con test.yaml)
 PYTHON ?= python3.11
 export COCOTB_PYTHON = $(PYTHON)
-export PYTHON3       = $(PYTHON)   # serve per verilator_includer
+export PYTHON3 = $(PYTHON)   # 👈 serve per verilator_includer
 
-# Simulatore (forzato a Verilator)
+# Simulatore (forzato a verilator)
 SIM ?= verilator
 
-# Directory di build e file di trace separati/espliciti
-SIM_BUILD ?= sim_build
-export TRACEFILE ?= dump_rtl.vcd   # nome del VCD prodotto da Verilator+cocotb
-
 ifeq ($(SIM),verilator)
-  EXTRA_ARGS += --sv --timescale 1ns/1ps --trace \
-                -Wall -Wno-fatal -Wno-PINMISSING -Wno-REDEFMACRO -Wno-WIDTHTRUNC
+  EXTRA_ARGS += -Wall -Wno-fatal -Wno-PINMISSING -Wno-REDEFMACRO -Wno-WIDTHTRUNC --trace --sv
 endif
 
-# Formato log cocotb più compatto e risoluzione X
-COCOTB_RESOLVE_X      = ZEROS
+# Usa nuovo sistema di trace (VERILATOR_TRACE è deprecato)
+COCOTB_RESOLVE_X = ZEROS
 COCOTB_REDUCED_LOG_FMT = 1
 
 # Include cocotb makefiles
@@ -48,4 +43,28 @@ include $(shell cocotb-config --makefiles)/Makefile.sim
 # Target di pulizia
 .PHONY: clean
 clean::
-	$(RM) -r $(SIM_BUILD) *.vcd *.fst results.xml
+	rm -rf sim_build *.vcd results.xml
+
+# --- [GLS opzionale con Verilator] ------------------------------------------
+# Attiva con:  make gl   oppure   make GL=1
+GL ?= 0
+
+# Percorsi di default (cambiali se i tuoi file stanno altrove)
+NETLIST   ?= $(shell pwd)/../gl/tt_um_mindlessjoe_mips_core.syn.v
+CELLS_SIM ?= $(shell pwd)/../gl/cells_sim.v
+PRIMS     ?= $(shell pwd)/../gl/primitives.v
+
+.PHONY: gl
+gl:
+	$(MAKE) GL=1
+
+ifeq ($(GL),1)
+  # Usa netlist + modelli celle per la GLS
+  VERILOG_SOURCES := $(NETLIST) $(CELLS_SIM) $(PRIMS)
+  # Build dir separata per non sporcare la RTL
+  SIM_BUILD := sim_build_gl
+  # Define e warning tipici per modelli Sky130 funzionali
+  EXTRA_ARGS += -DFUNCTIONAL -DUSE_POWER_PINS -DGL
+  EXTRA_ARGS += -Wno-DECLFILENAME -Wno-UNOPTFLAT
+endif
+# ---------------------------------------------------------------------------
