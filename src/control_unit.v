@@ -1,4 +1,3 @@
-`include "ALU_controller.v"
 
 /**
 * I-TYPE INSTRUCTIONS
