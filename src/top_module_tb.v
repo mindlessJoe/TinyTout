@@ -45,7 +45,8 @@ module tb_top_module;
     .debug_ALU_output(debug_ALU_output),
     .debug_LUI_MUX(debug_LUI_MUX),
     .debug_control_signals(debug_control_signals)
-  );
+  ); 
+  
 
   // Clock 100 MHz
   initial clk = 0;
@@ -80,7 +81,7 @@ module tb_top_module;
 //    $display("[%0t] Avvio scrittura parola: address_out=0x01", $time);
 
 // Scrivi 0xDEADBEEF LSB-first: EF, BE, AD, DE
-	send_byte(8'h00); // byte 0 (LSB)
+	//send_byte(8'h00); // byte 0 (LSB)
     send_byte(8'hEF); // byte 0 (LSB)
     send_byte(8'hBE); // byte 1
     send_byte(8'hAD); // byte 2

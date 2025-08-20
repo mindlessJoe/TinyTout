@@ -1,0 +1,29 @@
+# --- RTL simulation with Icarus Verilog ---
+TOP        := tb_top_module
+RTL_DIR    := ../src
+TB         := tb_top_module.v
+SRCS       := $(RTL_DIR)/top_module.v \
+              $(RTL_DIR)/IO_controller.v \
+              $(RTL_DIR)/control_unit.v \
+              $(RTL_DIR)/ALU_controller.v \
+              $(RTL_DIR)/ALU.v \
+              $(RTL_DIR)/register_port.v \
+              $(RTL_DIR)/extender.v \
+              $(RTL_DIR)/MUX.v
+BUILD_DIR  := build
+VVP        := $(BUILD_DIR)/sim.vvp
+
+all: sim
+
+$(VVP): $(TB) $(SRCS)
+	@mkdir -p $(BUILD_DIR)
+	iverilog -g2012 -Wall -s $(TOP) -o $(VVP) $(TB) $(SRCS)
+
+sim: $(VVP)
+	vvp $(VVP)
+
+waves: sim
+	gtkwave tb_top_module.vcd &
+
+clean:
+	rm -rf $(BUILD_DIR) tb_top_module.vcd

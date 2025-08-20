@@ -10,7 +10,7 @@ module register_port_module (
 	output reg [31:0] data_read_1
 	);
 	
-	reg [31:0] register_file [0:16]; // 16 registri da 32 bit da provare
+	reg [31:0] register_file [0:31]; // 16 registri da 32 bit da provare
 	integer j;
 	
 	always @(negedge clk) begin
