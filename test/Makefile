@@ -13,7 +13,7 @@ VERILOG_SOURCES = $(shell pwd)/../src/top_module.v \
                   $(shell pwd)/../src/ALU.v \
                   $(shell pwd)/../src/register_port.v \
                   $(shell pwd)/../src/MUX.v \
-                  $(shell pwd)/../src/extender.v
+                  $(shell pwd)/../src/extender.v \
 				  $(shell pwd)/../src/CORE.v
 
 # Forza cocotb ad usare sempre Python corretto
