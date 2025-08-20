@@ -1,51 +1,39 @@
-# Makefile per cocotb (usa Verilator come default)
+# Makefile.gl — cocotb gate-level (Icarus + sky130)
 
-# Top-level module (DUT)
 TOPLEVEL_LANG ?= verilog
-TOPLEVEL      = tt_um_mindlessjoe_mips_core
-MODULE        = tb  # nome del file Python in test/ senza .py (es: tb.py)
+TOPLEVEL      = tt_um_mindlessjoe_mips_core   # top del netlist GL (wrapper TT)
+MODULE        = tb                            # riusa test/tb.py
+SIM          ?= icarus                        # Verilator non va bene con le celle sky130
 
-# Sorgenti RTL
-VERILOG_SOURCES = $(shell pwd)/../src/project.v \
-                  $(shell pwd)/../src/top_module.v \
-                  $(shell pwd)/../src/IO_controller.v \
-                  $(shell pwd)/../src/control_unit.v \
-                  $(shell pwd)/../src/ALU_controller.v \
-                  $(shell pwd)/../src/ALU.v \
-                  $(shell pwd)/../src/register_port.v \
-                  $(shell pwd)/../src/MUX.v \
-                  $(shell pwd)/../src/extender.v \
-                  $(shell pwd)/../src/CORE.v
+# Netlist GL: lo step CI deve copiarlo qui (es. cp tt_submission/*.v test/gate_level_netlist.v)
+VERILOG_SOURCES = $(shell pwd)/gate_level_netlist.v
 
-# Pulizia variabili Python per evitare conflitti
+# PDK (settati in CI: PDK_ROOT e PDK=sky130A da volare)
+PDK        ?= sky130A
+SKY130_VERILOG := $(PDK_ROOT)/$(PDK)/libs.ref/sky130_fd_sc_hd/verilog
+
+# Includi i modelli funzionali delle celle standard (ordine importante: primitives prima)
+# USE_POWER_PINS per netlist con pin di alimentazione espliciti
+# GL per differenziare eventuali ifdef nel netlist
+EXTRA_ARGS += -I$(SKY130_VERILOG) \
+              $(SKY130_VERILOG)/primitives.v \
+              $(SKY130_VERILOG)/sky130_fd_sc_hd.v \
+              -DFUNCTIONAL -DUSE_POWER_PINS -DGL -g2012
+
+# Pulizia variabili Python per evitare conflitti con l'ambiente di GitHub
 export PYTHONHOME :=
 export PYTHONPATH :=
 
-# Forza cocotb e Verilator a usare Python 3.11 (coerente con test.yaml)
-PYTHON ?= python3.11
-export COCOTB_PYTHON = $(PYTHON)
-export PYTHON3       = $(PYTHON)   # serve per verilator_includer
+# File di build/risultati separati dall'RTL
+SIM_BUILD              = sim_build_gl
+export COCOTB_RESULTS_FILE = results_gl.xml
 
-# Simulatore (forzato a Verilator)
-SIM ?= verilator
-
-# Directory di build e file di trace separati/espliciti
-SIM_BUILD ?= sim_build
-export TRACEFILE ?= dump_rtl.vcd   # nome del VCD prodotto da Verilator+cocotb
-
-ifeq ($(SIM),verilator)
-  EXTRA_ARGS += --sv --timescale 1ns/1ps --trace \
-                -Wall -Wno-fatal -Wno-PINMISSING -Wno-REDEFMACRO -Wno-WIDTHTRUNC
-endif
-
-# Formato log cocotb più compatto e risoluzione X
-COCOTB_RESOLVE_X      = ZEROS
+# Log cocotb più compatto
 COCOTB_REDUCED_LOG_FMT = 1
 
-# Include cocotb makefiles
+# Include makefile cocotb
 include $(shell cocotb-config --makefiles)/Makefile.sim
 
-# Target di pulizia
 .PHONY: clean
 clean::
-	$(RM) -r $(SIM_BUILD) *.vcd *.fst results.xml
+	$(RM) -r $(SIM_BUILD) *.vcd *.fst $(COCOTB_RESULTS_FILE)

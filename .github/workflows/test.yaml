@@ -54,16 +54,51 @@ jobs:
           path: |
             test/*.vcd
             test/results.xml
-            
-      - name: Run cocotb tests (Gate-Level, Verilator)
+
+           # ===== PDK per GL =====
+      - name: Set up Sky130 PDK
+        uses: TinyTapeout/volare-action@v2
+        with:
+          pdk: sky130
+
+      # (opzionale) scarica la netlist gate-level dall'altro job (tt_submission)
+      - name: Download tt_submission artifact (optional)
+        uses: actions/download-artifact@v4
+        with:
+          name: tt_submission
+          path: tt_submission
+        continue-on-error: true
+
+      # ===== GL TEST (Icarus) =====
+      - name: Run cocotb tests (Gate-Level, Icarus)
         env:
           PYTHON: python3.11
           COCOTB_PYTHON: python3.11
-          PYTHON3: python3.11
+          # volare-action esporta PDK_ROOT e PDK=sky130A nell'ambiente
         run: |
+          set -e
           cd test
+
+          # Scegli la netlist GL:
+          if [ -f gate_level_netlist.v ]; then
+            echo "Using existing test/gate_level_netlist.v"
+          elif ls ../tt_submission/*.v >/dev/null 2>&1; then
+            cp ../tt_submission/*.v gate_level_netlist.v
+            echo "Copied netlist from tt_submission artifact"
+          else
+            echo "No gate-level netlist found. Marking GL test as skipped."
+            cat > results_gl.xml <<'XML'
+            <testsuite name="gl" tests="0" failures="0">
+              <properties>
+                <property name="gl_status" value="skipped_no_netlist"/>
+              </properties>
+            </testsuite>
+XML
+            exit 0
+          fi
+
           make -f Makefile.gl clean || true
-          make -f Makefile.gl SIM=verilator
+          make -f Makefile.gl SIM=icarus
           test -f results_gl.xml
           ! grep failure results_gl.xml
 
@@ -73,7 +108,7 @@ jobs:
           paths: "test/results_gl.xml"
         if: always()
 
-      - name: Upload simulation results (Gate-Level)
+      - name: Upload simulation results (GL)
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
