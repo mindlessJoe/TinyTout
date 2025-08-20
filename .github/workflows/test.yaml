@@ -54,3 +54,30 @@ jobs:
           path: |
             test/*.vcd
             test/results.xml
+            
+      - name: Run cocotb tests (Gate-Level, Verilator)
+        env:
+          PYTHON: python3.11
+          COCOTB_PYTHON: python3.11
+          PYTHON3: python3.11
+        run: |
+          cd test
+          make -f Makefile.gl clean || true
+          make -f Makefile.gl SIM=verilator
+          test -f results_gl.xml
+          ! grep failure results_gl.xml
+
+      - name: Test Summary (GL)
+        uses: test-summary/action@v2.3
+        with:
+          paths: "test/results_gl.xml"
+        if: always()
+
+      - name: Upload simulation results (Gate-Level)
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-gl
+          path: |
+            test/*.vcd
+            test/results_gl.xml
