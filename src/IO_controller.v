@@ -4,7 +4,7 @@ module counter_4 (
 	input count_enable,
 	output reg [2:0] counter
 	);
-	always @(posedge clk or  rst) begin
+	always @(posedge clk) begin
 			if (!rst)
 				counter <= 3'd0;
 			else if (count_enable)
