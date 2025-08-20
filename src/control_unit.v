@@ -67,7 +67,7 @@ module control_unit_module (
 						`ALU_OP_1     <= 1'b1;
 						`MEM_TO_REG   <= 1'b0;
 						`WRITE_REG    <= 1'b1;
-						`ALU_SRC	<= 1'b0;
+						`ALU_SRC	<= 1'b0; 
 						`LUI_CALLED <= 1'b0;
 						output_i_op <= 4'd0;
 					end
