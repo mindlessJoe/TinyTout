@@ -66,7 +66,7 @@ module tb_top_module;
     // 0x04, 0x00, 0x08, 0x8D
     //send_byte(8'b00000100); // imm[7:0]
     send_byte(8'b00000000); // imm[15:8]
-    send_byte(8'b00001000); // rt|rs (rt=$t0=01000, rs=$t1=01001 -> 00001000 è rt, rs sta nei bit alti del byte MSB)
+    send_byte(8'b00001000); // rt|rs (rt=$t0=01000, rs=$t1=01001 -> 00001000 ï¿½ rt, rs sta nei bit alti del byte MSB)
     send_byte(8'b10001101); // opcode (LW)
 
     @(posedge clk);
@@ -101,8 +101,8 @@ module tb_top_module;
 
   // Monitor
   initial begin
-    $monitor("monitor : T=%0t | instr=%h | addr_out=%02h | mem_out=%h | mem_r=%b | mem_w=%b | ALU_out=%h",
-             $time, instruction_debug, address_out, memory_out_debug, mem_read, mem_write, debug_ALU_output);
+    $monitor("monitor : instr=%h | addr_out=%02h | mem_out=%h | mem_r=%b | mem_w=%b | ALU_out=%h",
+             instruction_debug, address_out, memory_out_debug, mem_read, mem_write, debug_ALU_output);
   end
 
 endmodule
