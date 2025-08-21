@@ -45,7 +45,6 @@ jobs:
       
       - name: Install Verilator (for gl_test)
         run: |
-    # Disabilita il post-hook Python di APT che causa ModuleNotFoundError: apt_pkg
               sudo apt-get -o APT::Update::Post-Invoke-Success='/' update
               sudo apt-get install -y verilator
               verilator --version
