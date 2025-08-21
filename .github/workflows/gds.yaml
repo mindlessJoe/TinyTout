@@ -42,6 +42,14 @@ jobs:
         with:
           submodules: recursive
 
+      
+      - name: Install Verilator (for gl_test)
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y verilator
+            verilator --version
+
+
        # 1) Installa Python 3.11
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
@@ -54,12 +62,6 @@ jobs:
           sudo rm -f /usr/bin/python3
           sudo ln -s $(which python3.11) /usr/bin/python3
           python3 --version
-
-      - name: Install Verilator (for gl_test)
-        run: |
-            sudo apt-get update
-            sudo apt-get install -y verilator
-            verilator --version
 
 
       - name: GL test
