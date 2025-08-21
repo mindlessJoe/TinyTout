@@ -45,9 +45,11 @@ jobs:
       
       - name: Install Verilator (for gl_test)
         run: |
-              sudo apt-get -o APT::Update::Post-Invoke-Success='/' update
-              sudo apt-get install -y verilator
-              verilator --version
+    # Workaround Ubuntu 24.04: disabilita l'hook Python di APT
+             sudo rm -f /usr/lib/cnf-update-db || true
+             sudo apt-get update
+             sudo apt-get install -y verilator
+             verilator --version
 
        # 1) Installa Python 3.11
       - name: Setup Python 3.11
