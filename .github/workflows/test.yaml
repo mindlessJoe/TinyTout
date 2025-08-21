@@ -77,6 +77,156 @@
 #             test/results_rtl.xml
 #             test/results_gl.xml
 
+# name: test
+# on: [push, workflow_dispatch]
+
+# jobs:
+#   test:
+#     runs-on: ubuntu-24.04
+#     steps:
+#       - name: Checkout repo
+#         uses: actions/checkout@v4
+#         with:
+#           submodules: recursive
+
+#       - name: Install dependencies
+#         run: |
+#           sudo apt-get update
+#           sudo apt-get install -y verilator make git
+
+#       - name: Setup python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: '3.11'
+
+#       - name: Force python3.11 as default
+#         run: | 
+#           sudo rm -f /usr/bin/python3
+#           sudo ln -s $(which python3.11) /usr/bin/python3
+#           python3 --version
+
+#       - name: Install Python packages
+#         run: pip install -r test/requirements.txt
+
+#       - name: Run cocotb tests (RTL, Verilator)
+#         env:
+#           PYTHON: python3.11
+#           COCOTB_PYTHON: python3.11
+#         run: |
+#           cd test
+#           make clean || true
+#           make SIM=verilator
+#           mv -f results.xml results_rtl.xml
+#           test -f results_rtl.xml
+#           ! grep failure results_rtl.xml
+
+#       # ==== GLS FUNZIONALE, SENZA NULLA IN LOCALE ====
+#       # 1) scarica l'ultimo artifact del workflow GDS (stessa branch)
+#       - name: Download latest GDS artifact (from gds workflow)
+#         uses: dawidd6/action-download-artifact@v6
+#         with:
+#           workflow: gds.yaml          # <-- cambia se il tuo workflow GDS si chiama diversamente
+#           workflow_conclusion: success
+#           branch: ${{ github.ref_name }}
+#           path: gds_artifact
+#           if_no_artifact_found: warn
+
+#       # 2) trova una netlist gate-level dentro l’artifact (*/verilog/gl/*.v)
+#       - name: Locate GL netlist in artifact
+#         id: findgl
+#         run: |
+#              set -e
+
+#              GLV="$(ls -1 gds_artifact/tt_submission/*.v 2>/dev/null | head -n1 || true)"
+#              if [ -z "$GLV" ]; then
+#               GLV="$(find gds_artifact -type f \( -path "*/verilog/gl/*.v" -o -path "*/results/final/verilog/gl/*.v" \) | head -n1 || true)"
+#               fi
+
+#              if [ -z "$GLV" ]; then
+#               GLV="$(find gds_artifact -type f -name '*.v' -size +200k | head -n1 || true)"
+#               fi
+
+#              if [ -z "$GLV" ]; then
+#               echo "found=0" >> $GITHUB_OUTPUT
+#               echo "No GL netlist found in artifacts, skipping GLS."
+#               echo "---- artifact listing (top) ----"
+#               find gds_artifact -maxdepth 3 -type f | head -n 200 || true
+#              else
+#               echo "found=1" >> $GITHUB_OUTPUT
+#               echo "netlist=$GLV" >> $GITHUB_OUTPUT
+#               echo "Found netlist: $GLV"
+#               fi
+
+#       # 3) prepara modelli celle Sky130 (functional) al volo
+#       - name: Build Sky130 functional cell models (Verilator-friendly)
+#         if: steps.findgl.outputs.found == '1'
+#         run: |
+#           set -e
+#           mkdir -p gl
+#           # clona repo delle standard cell (leggero)
+#           git clone --depth=1 https://github.com/google/skywater-pdk-libs-sky130_fd_sc_hd sky130_hd
+#           # concatena tutti i modelli "functional" in un unico cells_sim.v
+#           find sky130_hd/cells -name "*functional*.v" -print0 | xargs -0 cat > gl/cells_sim.v
+#           # prova a prendere un primitives.v dal repo; se non c'è, crea un primitives minimale
+#           PRIM=$(find sky130_hd -maxdepth 2 -name "primitives.v" -print -quit || true)
+#           if [ -n "$PRIM" ]; then
+#             cp "$PRIM" gl/primitives.v
+#           else
+#             cat > gl/primitives.v <<'EOF'
+#             // Minimal UDP primitives shim (fallback)
+#             // Verilator non usa specify; i modelli functional non dovrebbero richiederli.
+#             `ifndef SKY130_MIN_PRIMS
+#             `define SKY130_MIN_PRIMS
+#             primitive sky130_pr__udp_dff (q, d, clk);
+#               output q; reg q; input d, clk;
+#               table
+#                 (01) 1 : ? : 1;
+#                 (01) 0 : ? : 0;
+#                 (?0) ? : ? : -;
+#                 (0?) ? : ? : -;
+#                 (?1) ? : ? : -;
+#               endtable
+#             endprimitive
+#             `endif
+#             EOF
+#           fi
+#           ls -lh gl/
+
+#       # 4) esegui GLS con Verilator usando la netlist + modelli appena creati
+#       - name: Run cocotb tests (GLS, Verilator)
+#         if: steps.findgl.outputs.found == '1'
+#         env:
+#           PYTHON: python3.11
+#           COCOTB_PYTHON: python3.11
+#         run: |
+#           cd test
+#           make clean || true
+#           make gl SIM=verilator \
+#             NETLIST="${{ steps.findgl.outputs.netlist }}" \
+#             CELLS_SIM="$(pwd)/../gl/cells_sim.v" \
+#             PRIMS="$(pwd)/../gl/primitives.v"
+#           mv -f results.xml results_gl.xml
+#           test -f results_gl.xml
+#           ! grep failure results_gl.xml
+
+#       - name: Test Summary
+#         uses: test-summary/action@v2.3
+#         with:
+#           paths: |
+#             test/results_rtl.xml
+#             test/results_gl.xml
+#         if: always()
+
+#       - name: Upload simulation results
+#         if: success() || failure()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: test-results
+#           path: |
+#             test/*.vcd
+#             test/results_rtl.xml
+#             test/results_gl.xml
+
 name: test
 on: [push, workflow_dispatch]
 
@@ -100,7 +250,7 @@ jobs:
           python-version: '3.11'
 
       - name: Force python3.11 as default
-        run: | 
+        run: |
           sudo rm -f /usr/bin/python3
           sudo ln -s $(which python3.11) /usr/bin/python3
           python3 --version
@@ -131,15 +281,26 @@ jobs:
           path: gds_artifact
           if_no_artifact_found: warn
 
-      # 2) trova una netlist gate-level dentro l’artifact (*/verilog/gl/*.v)
+      # 2) trova una netlist gate-level dentro l’artifact
       - name: Locate GL netlist in artifact
         id: findgl
         run: |
           set -e
-          GLV=$(find gds_artifact -type f -path "*/verilog/gl/*.v" | head -n1 || true)
+
+          GLV="$(ls -1 gds_artifact/tt_submission/*.v 2>/dev/null | head -n1 || true)"
+          if [ -z "$GLV" ]; then
+            GLV="$(find gds_artifact -type f \( -path "*/verilog/gl/*.v" -o -path "*/results/final/verilog/gl/*.v" \) | head -n1 || true)"
+          fi
+
+          if [ -z "$GLV" ]; then
+            GLV="$(find gds_artifact -type f -name '*.v' -size +200k | head -n1 || true)"
+          fi
+
           if [ -z "$GLV" ]; then
             echo "found=0" >> $GITHUB_OUTPUT
             echo "No GL netlist found in artifacts, skipping GLS."
+            echo "---- artifact listing (top) ----"
+            find gds_artifact -maxdepth 3 -type f | head -n 200 || true
           else
             echo "found=1" >> $GITHUB_OUTPUT
             echo "netlist=$GLV" >> $GITHUB_OUTPUT
@@ -200,11 +361,11 @@ jobs:
 
       - name: Test Summary
         uses: test-summary/action@v2.3
+        if: always()
         with:
           paths: |
             test/results_rtl.xml
             test/results_gl.xml
-        if: always()
 
       - name: Upload simulation results
         if: success() || failure()
@@ -215,4 +376,3 @@ jobs:
             test/*.vcd
             test/results_rtl.xml
             test/results_gl.xml
-
