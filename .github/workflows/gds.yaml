@@ -31,6 +31,8 @@ jobs:
           pdk: sky130
           tools-ref: ttsky25a
 
+  
+
   gl_test:
     needs: gds
     runs-on: ubuntu-24.04
@@ -39,6 +41,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+       # 1) Installa Python 3.11
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 2) Forza /usr/bin/python3 -> python3.11 (come nel tuo workflow "test")
+      - name: Force python3 -> python3.11
+        run: |
+          sudo rm -f /usr/bin/python3
+          sudo ln -s $(which python3.11) /usr/bin/python3
+          python3 --version
 
       - name: Install Verilator (for gl_test)
         run: |
