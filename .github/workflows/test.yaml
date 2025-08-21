@@ -275,7 +275,7 @@ jobs:
       - name: Download latest GDS artifact (from gds workflow)
         uses: dawidd6/action-download-artifact@v6
         with:
-          workflow: gds.yaml          # <-- cambia se il tuo workflow GDS si chiama diversamente
+          workflow: gds.yaml
           workflow_conclusion: success
           branch: ${{ github.ref_name }}
           path: gds_artifact
@@ -297,13 +297,13 @@ jobs:
           fi
 
           if [ -z "$GLV" ]; then
-            echo "found=0" >> $GITHUB_OUTPUT
+            echo "found=0" >> "$GITHUB_OUTPUT"
             echo "No GL netlist found in artifacts, skipping GLS."
             echo "---- artifact listing (top) ----"
             find gds_artifact -maxdepth 3 -type f | head -n 200 || true
           else
-            echo "found=1" >> $GITHUB_OUTPUT
-            echo "netlist=$GLV" >> $GITHUB_OUTPUT
+            echo "found=1" >> "$GITHUB_OUTPUT"
+            echo "netlist=$GLV" >> "$GITHUB_OUTPUT"
             echo "Found netlist: $GLV"
           fi
 
@@ -323,22 +323,20 @@ jobs:
             cp "$PRIM" gl/primitives.v
           else
             cat > gl/primitives.v <<'EOF'
-            // Minimal UDP primitives shim (fallback)
-            // Verilator non usa specify; i modelli functional non dovrebbero richiederli.
-            `ifndef SKY130_MIN_PRIMS
-            `define SKY130_MIN_PRIMS
-            primitive sky130_pr__udp_dff (q, d, clk);
-              output q; reg q; input d, clk;
-              table
-                (01) 1 : ? : 1;
-                (01) 0 : ? : 0;
-                (?0) ? : ? : -;
-                (0?) ? : ? : -;
-                (?1) ? : ? : -;
-              endtable
-            endprimitive
-            `endif
-            EOF
+`ifndef SKY130_MIN_PRIMS
+`define SKY130_MIN_PRIMS
+primitive sky130_pr__udp_dff (q, d, clk);
+  output q; reg q; input d, clk;
+  table
+    (01) 1 : ? : 1;
+    (01) 0 : ? : 0;
+    (?0) ? : ? : -;
+    (0?) ? : ? : -;
+    (?1) ? : ? : -;
+  endtable
+endprimitive
+`endif
+EOF
           fi
           ls -lh gl/
 
