@@ -45,7 +45,6 @@ jobs:
       
       - name: Install Verilator (for gl_test)
         run: |
-    # Workaround Ubuntu 24.04: disabilita l'hook Python di APT
              sudo rm -f /usr/lib/cnf-update-db || true
              sudo apt-get update
              sudo apt-get install -y verilator
