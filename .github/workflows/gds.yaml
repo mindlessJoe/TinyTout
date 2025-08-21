@@ -1,55 +1,55 @@
 name: gds
-
 on:
   push:
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
   gds:
     runs-on: ubuntu-24.04
-    steps:
-      - name: checkout repo
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
-      - name: Build GDS
-        uses: TinyTapeout/tt-gds-action@ttsky25a
-        with:
-          pdk: sky130
-          tools-ref: ttsky25a
-
-  precheck:
-    needs: gds
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Run Tiny Tapeout Precheck
-        uses: TinyTapeout/tt-gds-action/precheck@ttsky25a
-        with:
-          pdk: sky130
-          tools-ref: ttsky25a
-
-  gl_test:
-    needs: gds
-    runs-on: ubuntu-24.04
-    steps:
-      - name: checkout repo
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: GL test
-        uses: TinyTapeout/tt-gds-action/gl_test@ttsky25a
-        with:
-          pdk: sky130
-
-  viewer:
-    needs: gds
-    runs-on: ubuntu-24.04
+    # Permessi raccomandati per il deploy su Pages
     permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+
+    # Necessario per actions/deploy-pages usato dal viewer
+    environment:
+      name: github-pages
+
     steps:
-      - uses: TinyTapeout/tt-gds-action/viewer@ttsky25a
+      - name: Checkout repo
+        uses: actions/checkout@v4
         with:
-          pdk: sky130
+          submodules: recursive
+
+      # Crea l’artifact con la tua submission (src/, info.yaml, ecc.)
+      - name: Build submission
+        uses: TinyTapeout/tt-gds-action/submission@ttsky25a
+
+      # Esegue il flow OpenLane e produce GDS + render (artifact: gds_render)
+      - name: Run GDS flow
+        uses: TinyTapeout/tt-gds-action/gds@ttsky25a
+
+      # 👇 AGGIUNTA: Verilator serve al tuo Makefile (SIM=verilator)
+      - name: Install Verilator (for gl_test)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y verilator
+
+      # Test gate-level funzionale (usa il tuo test/Makefile)
+      - name: Gate-level sim (gl_test)
+        uses: TinyTapeout/tt-gds-action/gl_test@ttsky25a
+
+      # Evita errori "Multiple artifacts named github-pages" nei re-run
+      - name: Cleanup old 'github-pages' artifact (safe on reruns)
+        uses: GeekyEggo/delete-artifact@v5
+        with:
+          name: github-pages
+          failOnError: false
+
+      # Pubblica il viewer (scarica tt_submission + gds_render e deploy su Pages)
+      - name: Publish viewer
+        uses: TinyTapeout/tt-gds-action/viewer@ttsky25a
