@@ -37,7 +37,7 @@ jobs:
     needs: gds
     runs-on: ubuntu-24.04
     steps:
-      - name: checkout repo
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           submodules: recursive
